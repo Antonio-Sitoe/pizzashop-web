@@ -5,11 +5,10 @@ export interface GetDayOrdersAmountResponse {
   diffFromYesterday: number
 }
 
-export async function getDayOrdersAmount(): Promise<GetDayOrdersAmountResponse> {
-  const response = await api.get<GetDayOrdersAmountResponse>('/metrics/day-orders-amount')
+export async function getDayOrdersAmount() {
+  const response = await api.get<GetDayOrdersAmountResponse>(
+    '/metrics/day-orders-amount',
+  )
 
-  return {
-    amount: 5,
-    diffFromYesterday: 6
-  }
+  return response.data
 }

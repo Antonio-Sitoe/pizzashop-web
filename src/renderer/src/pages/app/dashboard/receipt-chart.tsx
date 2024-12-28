@@ -53,7 +53,7 @@ export function ReceiptChart(): JSX.Element {
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-full max-h-[260px] w-full">
+        <ChartContainer config={chartConfig} className="h-[260px] w-full">
           <LineChart
             accessibilityLayer
             data={chartData}
