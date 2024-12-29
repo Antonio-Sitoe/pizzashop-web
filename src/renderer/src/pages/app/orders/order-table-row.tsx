@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button'
 import { ArrowBigRight, Search, X } from 'lucide-react'
 import { OrderDetails } from './order-details'
 
-interface OrderTableRowProps { }
+interface OrderTableRowProps {}
 
-export function OrderTableRow({ }: OrderTableRowProps): JSX.Element {
+export function OrderTableRow({}: OrderTableRowProps): JSX.Element {
   return (
     <>
       <TableRow>

@@ -10,18 +10,15 @@ export type GetDailyReceiptInPeriodResponse = Array<{
   receipt: number
 }>
 
-export async function getDailyReceiptInPeriod({
-  from,
-  to,
-}: GetDailyReceiptInPeriodQuery) {
+export async function getDailyReceiptInPeriod({ from, to }: GetDailyReceiptInPeriodQuery) {
   const response = await api.get<GetDailyReceiptInPeriodResponse>(
     '/metrics/daily-receipt-in-period',
     {
       params: {
         from,
-        to,
-      },
-    },
+        to
+      }
+    }
   )
 
   return response.data

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
 import { z } from 'zod'
@@ -46,12 +46,21 @@ export function SignUp(): JSX.Element {
 
       toast.success('Restaurante cadastrado!', {
         description: '',
+        onDismiss: () => {
+          navigate(`/sign-in?email=${email}`)
+        },
         action: {
           label: 'Login',
           onClick: () => {
             navigate(`/sign-in?email=${email}`)
           }
         }
+      })
+
+      await new Promise(() => {
+        setTimeout(() => {
+          navigate(`/sign-in?email=${email}`)
+        }, 500)
       })
     } catch (err) {
       toast.error('Erro ao registrar restaurante!')
@@ -60,15 +69,15 @@ export function SignUp(): JSX.Element {
 
   return (
     <div className="lg:p-8">
-      <a
-        href="/"
+      <Link
+        to="/sign-in"
         className={twMerge(
           buttonVariants({ variant: 'ghost' }),
           'absolute right-4 top-4 md:right-8 md:top-8'
         )}
       >
         Fazer login
-      </a>
+      </Link>
 
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">

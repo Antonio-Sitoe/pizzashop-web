@@ -14,16 +14,16 @@ export function RoutesProvider(): JSX.Element {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<AuthLayout />}>
+          <Route index path="sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+        </Route>
         <Route path="/" element={<AppLayout />}>
           <Route index path="/" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="*" element={<NotFound />} />
         </Route>
-        {/* <Route path="/" element={<AuthLayout />}>
-          <Route index element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
-        </Route> */}
-        {/* <Route path="*" element={<NotFound />} /> */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )

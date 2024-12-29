@@ -17,7 +17,7 @@
     ".prettierignore": true,
     ".prettierrc.yaml": true,
     "postcss.config.js": true,
-    // "tailwind.config.js": true,
+    "tailwind.config.js": true,
     "components.json": true,
     "tsconfig.json": true,
     "tsconfig.node.json": true,

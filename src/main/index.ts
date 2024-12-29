@@ -49,6 +49,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  app.setAsDefaultProtocolClient('pizzashop')
+
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
