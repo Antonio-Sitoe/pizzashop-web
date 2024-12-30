@@ -3,10 +3,15 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { ArrowBigRight, Search, X } from 'lucide-react'
 import { OrderDetails } from './order-details'
+import { OrderType } from '@/api/get-orders'
+import { OrderStatus } from '@/components/order-status'
+import { formatDistanceToNow } from 'date-fns'
 
-interface OrderTableRowProps {}
+interface OrderTableRowProps {
+  order: OrderType
+}
 
-export function OrderTableRow({}: OrderTableRowProps): JSX.Element {
+export function OrderTableRow({ order }: OrderTableRowProps): JSX.Element {
   return (
     <>
       <TableRow>
@@ -18,16 +23,22 @@ export function OrderTableRow({}: OrderTableRowProps): JSX.Element {
             </Button>
           </OrderDetails>
         </TableCell>
-        <TableCell className="font-mono text-xs font-medium">sdsdsd</TableCell>
-        <TableCell className="text-muted-foreground">ha 35 minutos</TableCell>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-slate-400" />
-            <span className="font-medium text-muted-foreground">Pendente</span>
-          </div>
+        <TableCell className="font-mono text-xs font-medium">{order.orderId}</TableCell>
+        <TableCell className="text-muted-foreground">
+          {formatDistanceToNow(order.createdAt, {
+            addSuffix: true
+          })}
         </TableCell>
-        <TableCell className="font-medium">Antonio SItoe</TableCell>
-        <TableCell className="font-medium">323 MT</TableCell>
+        <TableCell>
+          <OrderStatus status={order.status} />
+        </TableCell>
+        <TableCell className="font-medium">{order.customerName}</TableCell>
+        <TableCell className="font-medium">
+          {order.total.toLocaleString('pt-MZ', {
+            style: 'currency',
+            currency: 'MZN'
+          })}{' '}
+        </TableCell>
         <TableCell>
           <Button size="xs" variant="outline">
             <ArrowBigRight className="h-3 w-3 mr-2" />
