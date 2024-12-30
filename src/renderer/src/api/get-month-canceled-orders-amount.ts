@@ -9,8 +9,5 @@ export async function getMonthCanceledOrdersAmount(): Promise<GetMonthCanceledOr
   const response = await api.get<GetMonthCanceledOrdersAmountResponse>(
     '/metrics/month-canceled-orders-amount'
   )
-  return {
-    amount: 5,
-    diffFromLastMonth: 6
-  }
+  return response.data
 }

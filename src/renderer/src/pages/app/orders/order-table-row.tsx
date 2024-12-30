@@ -1,150 +1,200 @@
-import { ptBR } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-import { cancelOrder } from '@/api/cancel-order'
-import { OrderStatus } from '@/components/order-status'
-import { deliverOrder } from '@/api/deliver-order'
-import { approveOrder } from '@/api/approve-order'
-import { OrderDetails } from './order-details'
-import { dispatchOrder } from '@/api/dispatch-order'
-import { formatDistanceToNow } from 'date-fns'
-import { TableCell, TableRow } from '@/components/ui/table'
-import { Dialog, DialogTrigger } from '@/components/ui/dialog'
-import { ArrowBigRight, Search, X } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { GetOrderResponse, ORDER_STATUS, OrderType } from '@/api/get-orders'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { ArrowRight, Loader2, Search } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
-interface OrderTableRowProps {
-  order: OrderType
+import { approveOrder } from '@/api/approve-order'
+import { cancelOrder } from '@/api/cancel-order'
+import { deliverOrder } from '@/api/deliver-order'
+import { dispatchOrder } from '@/api/dispatch-order'
+import { GetOrderResponse } from '@/api/get-orders'
+import { OrderStatus } from '@/components/order-status'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import { TableCell, TableRow } from '@/components/ui/table'
+
+import { OrderDetails } from './order-details'
+
+type OrderStatus = 'pending' | 'canceled' | 'processing' | 'delivering' | 'delivered'
+
+export interface OrderTableRowProps {
+  order: {
+    orderId: string
+    createdAt: string
+    customerName: string
+    total: number
+    status: OrderStatus
+  }
 }
 
 export function OrderTableRow({ order }: OrderTableRowProps): JSX.Element {
-  const [buttonLabel, setButtonLabel] = useState('Aprovar')
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false)
   const queryClient = useQueryClient()
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { mutateAsync: cancelOrderAsync, isPending: isCancelingOrder } = useMutation({
-    mutationFn: cancelOrder,
-    async onSuccess(_, { orderId }) {
-      updateOrderStatusOnCache(orderId, 'canceled')
-    }
-  })
+  function updateOrderStatusOnCache(orderId: string, status: OrderStatus): void {
+    const ordersListingCache = queryClient.getQueriesData<GetOrderResponse>({
+      queryKey: ['orders']
+    })
 
-  const { mutateAsync: aproveOrderFn, isPending: isAprovingOrder } = useMutation({
+    ordersListingCache.forEach(([cacheKey, cached]) => {
+      if (!cached) {
+        return
+      }
+
+      queryClient.setQueryData<GetOrderResponse>(cacheKey, {
+        ...cached,
+        orders: cached.orders.map((order) => {
+          if (order.orderId !== orderId) {
+            return order
+          }
+
+          return {
+            ...order,
+            status
+          }
+        })
+      })
+    })
+
+    toast.success('Pedido alterado com sucesso!')
+  }
+
+  const { mutateAsync: approveOrderFn, isPending: isApprovingOrder } = useMutation({
     mutationFn: approveOrder,
-    async onSuccess(_, { orderId }) {
+    onSuccess: async (_, { orderId }) => {
       updateOrderStatusOnCache(orderId, 'processing')
     }
   })
 
-  const { mutateAsync: deliveryOrderFn, isPending: isDeliveringOrder } = useMutation({
-    mutationFn: deliverOrder,
-    async onSuccess(_, { orderId }) {
+  const { mutateAsync: cancelOrderFn, isPending: isCancelingOrder } = useMutation({
+    mutationFn: cancelOrder,
+    onSuccess: async (_, { orderId }) => {
+      updateOrderStatusOnCache(orderId, 'canceled')
+    }
+  })
+
+  const { mutateAsync: dispatchOrderFn, isPending: isDispatchingOrder } = useMutation({
+    mutationFn: dispatchOrder,
+    onSuccess: async (_, { orderId }) => {
       updateOrderStatusOnCache(orderId, 'delivering')
     }
   })
-  const { mutateAsync: dispatchOrderFn, isPending: isdispatchOrder } = useMutation({
-    mutationFn: dispatchOrder,
-    async onSuccess(_, { orderId }) {
+
+  const { mutateAsync: deliverOrderFn, isPending: isDeliveringOrder } = useMutation({
+    mutationFn: deliverOrder,
+    onSuccess: async (_, { orderId }) => {
       updateOrderStatusOnCache(orderId, 'delivered')
     }
   })
 
-  async function updateOrderStatusOnCache(orderId: string, status: ORDER_STATUS): Promise<void> {
-    const orderListCache = queryClient.getQueriesData<GetOrderResponse>({
-      queryKey: ['orders']
-    })
-    orderListCache.forEach(([cachekey, cacheData]) => {
-      if (!cacheData) return
-      queryClient.setQueryData<GetOrderResponse>(cachekey, {
-        ...cacheData,
-        orders: cacheData.orders.map((order) => {
-          if (order.orderId === orderId) {
-            return { ...order, status }
-          }
-          return order
-        })
-      })
-    })
-  }
-
-  function handleCancelOrder(): void {
-    cancelOrderAsync({ orderId: order.orderId })
-  }
-
-  async function handleActionType(status: ORDER_STATUS, orderId: string): Promise<void> {
-    if (status === 'pending') {
-      await aproveOrderFn({ orderId })
-      setButtonLabel('Em Entrega')
-    } else if (status === 'processing') {
-      await dispatchOrderFn({ orderId })
-      setButtonLabel('Entregue')
-    } else if (status === 'delivering') {
-      await deliveryOrderFn({ orderId })
-      setButtonLabel('')
-    }
-  }
-
-  const isPending = isdispatchOrder || isDeliveringOrder || isAprovingOrder || isCancelingOrder
-
   return (
-    <>
-      <TableRow>
-        <TableCell className="font-medium">
-          <Dialog onOpenChange={setIsModalOpen} open={isModalOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="xs">
-                <Search className="h-3 w-3" />
-                <span className="sr-only">Detalhes do pedido</span>
-              </Button>
-            </DialogTrigger>
-            <OrderDetails id={order.orderId} isOpen={isModalOpen} />
-          </Dialog>
-        </TableCell>
-        <TableCell className="font-mono text-xs font-medium">{order.orderId}</TableCell>
-        <TableCell className="text-muted-foreground">
-          {formatDistanceToNow(order.createdAt, {
-            locale: ptBR,
-            addSuffix: true
-          })}
-        </TableCell>
-        <TableCell>
-          <OrderStatus status={order.status} />
-        </TableCell>
-        <TableCell className="font-medium">{order.customerName}</TableCell>
-        <TableCell className="font-medium">
-          {order.total.toLocaleString('pt-MZ', {
-            style: 'currency',
-            currency: 'MZN'
-          })}{' '}
-        </TableCell>
-        <TableCell>
-          {buttonLabel && (
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => handleActionType(order.status, order.orderId)}
-              disabled={isPending}
-            >
-              <ArrowBigRight className="h-3 w-3 mr-2" />
-              {buttonLabel}
+    <TableRow>
+      <TableCell>
+        <Dialog onOpenChange={setIsOrderDetailsOpen} open={isOrderDetailsOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="xs">
+              <Search className="h-3 w-3" />
+              <span className="sr-only">Detalhes do pedido</span>
             </Button>
-          )}
-        </TableCell>
-        <TableCell>
+          </DialogTrigger>
+
+          <OrderDetails isOpen={isOrderDetailsOpen} id={order.orderId} />
+        </Dialog>
+      </TableCell>
+
+      <TableCell className="font-mono text-xs font-medium">{order.orderId}</TableCell>
+      <TableCell className="text-muted-foreground">
+        {formatDistanceToNow(new Date(order.createdAt), {
+          locale: ptBR,
+          addSuffix: true
+        })}
+      </TableCell>
+
+      <TableCell>
+        <OrderStatus status={order.status} />
+      </TableCell>
+
+      <TableCell className="font-medium">{order.customerName}</TableCell>
+
+      <TableCell>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium">
+            {(order.total / 100).toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            })}
+          </span>
+          <span className="text-xs text-muted-foreground">3 produto(s)</span>
+        </div>
+      </TableCell>
+
+      <TableCell>
+        {order.status === 'processing' && (
           <Button
-            disabled={
-              (order.status !== 'pending' && order.status !== 'processing') || isCancelingOrder
-            }
-            onClick={handleCancelOrder}
+            variant="outline"
             size="xs"
-            variant="ghost"
+            disabled={isDispatchingOrder}
+            onClick={() => dispatchOrderFn({ orderId: order.orderId })}
           >
-            <X className="h-3 w-3 mr-2" />
-            Cancelar
+            Em entrega
+            {isDispatchingOrder ? (
+              <Loader2 className="ml-2 h-3 w-3 animate-spin" />
+            ) : (
+              <ArrowRight className="ml-2 h-3 w-3" />
+            )}
           </Button>
-        </TableCell>
-      </TableRow>
-    </>
+        )}
+
+        {order.status === 'delivering' && (
+          <Button
+            variant="outline"
+            size="xs"
+            disabled={isDeliveringOrder}
+            onClick={() => deliverOrderFn({ orderId: order.orderId })}
+          >
+            Entregue
+            {isDeliveringOrder ? (
+              <Loader2 className="ml-2 h-3 w-3 animate-spin" />
+            ) : (
+              <ArrowRight className="ml-2 h-3 w-3" />
+            )}
+          </Button>
+        )}
+
+        {order.status === 'pending' && (
+          <Button
+            variant="outline"
+            size="xs"
+            disabled={isApprovingOrder}
+            onClick={() => approveOrderFn({ orderId: order.orderId })}
+          >
+            Aprovar
+            {isApprovingOrder ? (
+              <Loader2 className="ml-2 h-3 w-3 animate-spin" />
+            ) : (
+              <ArrowRight className="ml-2 h-3 w-3" />
+            )}
+          </Button>
+        )}
+      </TableCell>
+
+      <TableCell>
+        <Button
+          onClick={() => cancelOrderFn({ orderId: order.orderId })}
+          disabled={!['pending', 'processing'].includes(order.status) || isCancelingOrder}
+          variant="ghost"
+          size="xs"
+        >
+          {isCancelingOrder ? (
+            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+          ) : (
+            <ArrowRight className="mr-2 h-3 w-3" />
+          )}
+          Cancelar
+        </Button>
+      </TableCell>
+    </TableRow>
   )
 }

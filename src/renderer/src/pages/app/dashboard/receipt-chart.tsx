@@ -3,19 +3,17 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis, Tooltip, TooltipProps } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { ChartConfig, ChartContainer } from '@/components/ui/chart'
-
-const chartData = [
-  { date: 'January', desktop: 186 },
-  { date: 'February', desktop: 305 },
-  { date: 'March', desktop: 237 },
-  { date: 'April', desktop: 73 },
-  { date: 'May', desktop: 209 },
-  { date: 'June', desktop: 214 }
-]
+import { useQuery } from '@tanstack/react-query'
+import { getDailyReceiptInPeriod } from '@/api/get-daily-receipt-in-period'
+import { Label } from '@/components/ui/label'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DateRange } from 'react-day-picker'
+import React, { useMemo } from 'react'
+import { subDays } from 'date-fns'
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
+  receipt: {
+    label: 'Receita',
     color: 'hsl(var(--chart-1))'
   }
 } satisfies ChartConfig
@@ -44,6 +42,21 @@ function CustomTooltip({
 }
 
 export function ReceiptChart(): JSX.Element {
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date()
+  })
+
+  const { data: dayleRevenue } = useQuery({
+    queryKey: ['getDailyReceiptInPeriod'],
+    queryFn: () => getDailyReceiptInPeriod({ from: date?.from, to: date?.to })
+  })
+
+  const chartData = useMemo(
+    () => dayleRevenue?.map((item) => ({ date: item.date, receipt: item.receipt / 100 })) || [],
+    [dayleRevenue]
+  )
+
   return (
     <Card className="col-span-6">
       <CardHeader className="flex-row items-center justify-between pb-8">
@@ -51,43 +64,43 @@ export function ReceiptChart(): JSX.Element {
           <CardTitle className="text-base font-medium">Receita no Periodo</CardTitle>
           <CardDescription>Receita diaria no periodo</CardDescription>
         </div>
+        <div className="flex items-center gap-3">
+          <Label>Periodo</Label>
+          <DateRangePicker date={date} onDateChange={setDate} />
+        </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[260px] w-full">
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-              bottom: 12
-            }}
-            className="text-sm"
-          >
-            <CartesianGrid vertical={false} className="stroke-muted" />
-            <XAxis dataKey="date" stroke="#888888" tickLine={false} axisLine={false} dy={16} />
-            <YAxis
-              tickLine={false}
-              stroke="#888"
-              axisLine={false}
-              width={80}
-              tickFormatter={(value: number) =>
-                value.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'MZN'
-                })
-              }
-            />
-            <Tooltip cursor={false} content={<CustomTooltip />} />
-            <Line
-              dataKey="desktop"
-              type="natural"
-              stroke="var(--color-desktop)"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ChartContainer>
+        {dayleRevenue && (
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
+            <LineChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 12,
+                right: 12,
+                bottom: 12
+              }}
+              className="text-sm"
+            >
+              <CartesianGrid vertical={false} className="stroke-muted" />
+              <XAxis dataKey="date" stroke="#888888" tickLine={false} axisLine={false} dy={16} />
+              <YAxis
+                tickLine={false}
+                stroke="#888"
+                axisLine={false}
+                width={80}
+                tickFormatter={(value: number) =>
+                  value.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'MZN'
+                  })
+                }
+              />
+              <Tooltip cursor={false} content={<CustomTooltip />} />
+              <Line dataKey="receipt" type="linear" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   )

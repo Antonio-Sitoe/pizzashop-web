@@ -7,9 +7,5 @@ export interface GetMonthOrdersAmountResponse {
 
 export async function getMonthOrdersAmount(): Promise<GetMonthOrdersAmountResponse> {
   const response = await api.get<GetMonthOrdersAmountResponse>('/metrics/month-orders-amount')
-
-  return {
-    amount: 5,
-    diffFromLastMonth: 5
-  }
+  return response.data
 }

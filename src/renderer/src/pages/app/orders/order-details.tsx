@@ -26,7 +26,6 @@ export function OrderDetails({ id, isOpen }: OrderDetailsProps): JSX.Element {
     queryFn: () => getOrderDetails({ id }),
     enabled: isOpen
   })
-  console.log({ order })
   return (
     <DialogContent>
       <DialogHeader>
