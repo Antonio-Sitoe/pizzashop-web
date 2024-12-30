@@ -20,14 +20,18 @@ import { z } from 'zod'
 export function Orders(): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const orderId = searchParams.get('orderId')
+  const custumerName = searchParams.get('custumerName')
+  const status = searchParams.get('status')
+
   const pageIndex = z.coerce
     .number()
     .transform((page) => page - 1)
     .parse(searchParams.get('page') ?? '1')
 
   const { data: results } = useQuery({
-    queryKey: ['orders', pageIndex],
-    queryFn: () => getOrders({ pageIndex })
+    queryKey: ['orders', pageIndex, orderId, custumerName, status],
+    queryFn: () => getOrders({ pageIndex, orderId, custumerName, status })
   })
 
   function handlePaginate(pageIndex: number): void {
@@ -37,7 +41,6 @@ export function Orders(): JSX.Element {
     })
   }
 
-  console.log({ results })
   return (
     <>
       <Helmet title="Pedidos" />

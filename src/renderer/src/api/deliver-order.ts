@@ -4,6 +4,6 @@ export interface DeliverOrderParams {
   orderId: string
 }
 
-export async function deliverOrder({ orderId }: DeliverOrderParams) {
+export async function deliverOrder({ orderId }: DeliverOrderParams): Promise<void> {
   await api.patch(`/orders/${orderId}/deliver`)
 }
