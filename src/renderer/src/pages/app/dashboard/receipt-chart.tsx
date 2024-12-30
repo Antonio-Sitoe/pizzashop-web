@@ -3,13 +3,14 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis, Tooltip, TooltipProps } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { ChartConfig, ChartContainer } from '@/components/ui/chart'
-import { useQuery } from '@tanstack/react-query'
 import { getDailyReceiptInPeriod } from '@/api/get-daily-receipt-in-period'
-import { Label } from '@/components/ui/label'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { useQuery } from '@tanstack/react-query'
+import { Label } from '@/components/ui/label'
 import { DateRange } from 'react-day-picker'
 import React, { useMemo } from 'react'
 import { subDays } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 
 const chartConfig = {
   receipt: {
@@ -70,7 +71,7 @@ export function ReceiptChart(): JSX.Element {
         </div>
       </CardHeader>
       <CardContent>
-        {dayleRevenue && (
+        {dayleRevenue ? (
           <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <LineChart
               accessibilityLayer
@@ -100,6 +101,10 @@ export function ReceiptChart(): JSX.Element {
               <Line dataKey="receipt" type="linear" strokeWidth={2} dot={false} />
             </LineChart>
           </ChartContainer>
+        ) : (
+          <div className="flex h-[240px] w-full items-center justify-center">
+            <Loader2 className="text-muted-foreground animate-spin h-8 w-8" />
+          </div>
         )}
       </CardContent>
     </Card>

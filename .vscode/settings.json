@@ -11,7 +11,7 @@
   "files.exclude": {
     ".editorconfig": true,
     ".eslintignore": true,
-    ".eslintrc.cjs": true,
+    // ".eslintrc.cjs": true,
     ".gitignore": true,
     ".npmrc": true,
     ".prettierignore": true,

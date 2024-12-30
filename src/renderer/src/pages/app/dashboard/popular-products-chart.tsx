@@ -1,5 +1,5 @@
 import { Cell, Pie, PieChart } from 'recharts'
-import { BarChart } from 'lucide-react'
+import { BarChart, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import colors from 'tailwindcss/colors'
 
@@ -40,51 +40,57 @@ export function PopularProductsChart(): JSX.Element {
         </div>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square">
-          <PieChart>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-            <Pie
-              data={popularProducts}
-              dataKey="amount"
-              nameKey="product"
-              cy="50%"
-              cx="50%"
-              outerRadius={86}
-              innerRadius={64}
-              strokeWidth={8}
-              fill={colors.emerald['500']}
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
-                const RADIAN = Math.PI / 180
-                const radius = 12 + innerRadius + (outerRadius - innerRadius)
-                const x = cx + radius * Math.cos(-midAngle * RADIAN)
-                const y = cy + radius * Math.sin(-midAngle * RADIAN)
+        {popularProducts ? (
+          <ChartContainer config={chartConfig} className="mx-auto aspect-square">
+            <PieChart>
+              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <Pie
+                data={popularProducts}
+                dataKey="amount"
+                nameKey="product"
+                cy="50%"
+                cx="50%"
+                outerRadius={86}
+                innerRadius={64}
+                strokeWidth={8}
+                fill={colors.emerald['500']}
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                  const RADIAN = Math.PI / 180
+                  const radius = 12 + innerRadius + (outerRadius - innerRadius)
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN)
 
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    className="fill-muted-foreground text-xs"
-                    textAnchor={x > cx ? 'start' : 'end'}
-                    dominantBaseline="central"
-                  >
-                    {popularProducts?.[index].product?.substring(0, 12).concat('...')} ({value})
-                  </text>
-                )
-              }}
-              labelLine={false}
-            >
-              {popularProducts?.map((_, index) => {
-                return (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index]}
-                    className="stroke-background hover:opacity-80"
-                  />
-                )
-              })}
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      className="fill-muted-foreground text-xs"
+                      textAnchor={x > cx ? 'start' : 'end'}
+                      dominantBaseline="central"
+                    >
+                      {popularProducts?.[index].product?.substring(0, 12).concat('...')} ({value})
+                    </text>
+                  )
+                }}
+                labelLine={false}
+              >
+                {popularProducts?.map((_, index) => {
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index]}
+                      className="stroke-background hover:opacity-80"
+                    />
+                  )
+                })}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        ) : (
+          <div className="flex h-[240px] w-full items-center justify-center">
+            <Loader2 className="text-muted-foreground animate-spin h-8 w-8" />
+          </div>
+        )}
       </CardContent>
     </Card>
   )

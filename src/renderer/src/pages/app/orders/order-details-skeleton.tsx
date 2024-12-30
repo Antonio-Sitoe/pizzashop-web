@@ -1,7 +1,3 @@
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-
-import { OrderStatus } from '@/components/order-status'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -10,10 +6,10 @@ import {
   TableFooter,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table'
 
-export function OrderDetailsSkeleton() {
+export function OrderDetailsSkeleton(): JSX.Element {
   return (
     <div className="space-y-6">
       <Table>
